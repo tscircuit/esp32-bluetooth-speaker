@@ -1,9 +1,10 @@
-import { MAX98357AETE_T } from "@tsci/Abse2001.MAX98357AETE_T"
-import { AMS1117_3_3 } from "./imports/AMS1117_3_3"
-import { ESP32_WROOM_32E_N8 } from "./imports/ESP32_WROOM_32E_N8"
-import { TYPE_C_31_M_12 } from "./imports/TYPE_C_31_M_12"
+import { MAX98357AETE_T } from "@tsci/Abse2001.MAX98357AETE_T";
+import { AMS1117_3_3 } from "./imports/AMS1117_3_3";
+import { ESP32_WROOM_32E_N8 } from "./imports/ESP32_WROOM_32E_N8";
+import { TYPE_C_31_M_12 } from "./imports/TYPE_C_31_M_12";
+import { XL_1608UBC_04 } from "./imports/XL_1608UBC_04";
 
-const buttonFootprint = "kicad:Button_Switch_SMD/SW_SPST_PTS810"
+const buttonFootprint = "kicad:Button_Switch_SMD/SW_SPST_PTS810";
 
 export default function BluetoothSpeaker() {
   return (
@@ -16,6 +17,14 @@ export default function BluetoothSpeaker() {
       defaultTraceWidth="0.25mm"
       minBoardEdgeClearance="0.25mm"
     >
+      {/* Net-level widths preserve current capacity and audio output margins. */}
+      <net name="USB_VBUS" nominalTraceWidth="0.8mm" isPowerNet />
+      <net name="V5" nominalTraceWidth="0.8mm" isPowerNet />
+      <net name="V3V3" nominalTraceWidth="0.6mm" isPowerNet />
+      <net name="GND" nominalTraceWidth="0.5mm" isGroundNet />
+      <net name="SPK_POS" nominalTraceWidth="1mm" />
+      <net name="SPK_NEG" nominalTraceWidth="1mm" />
+
       {/* Keep every copper layer clear below the ESP32 PCB antenna. */}
       <keepout
         shape="rect"
@@ -49,11 +58,24 @@ export default function BluetoothSpeaker() {
         displayName="USB-C 5V POWER"
         pcbX={0}
         pcbY={-20.3}
-        pcbRotation={180}
+        pcbRotation={0}
         schX={-14}
         schY={4}
         noConnect={["B8", "B7", "A6", "A7", "B6", "A8"]}
+        connections={{
+          A4B9: "net.USB_VBUS",
+          B4A9: "net.USB_VBUS",
+          A5: "net.USB_CC1",
+          B5: "net.USB_CC2",
+          A1B12: "net.GND",
+          B1A12: "net.GND",
+          EH1: "net.GND",
+          EH2: "net.GND",
+          EH3: "net.GND",
+          EH4: "net.GND",
+        }}
       />
+
       <resistor
         name="R1"
         displayName="USB CC1 Rd"
@@ -63,7 +85,12 @@ export default function BluetoothSpeaker() {
         pcbY={-15.5}
         schX={-10}
         schY={5}
+        connections={{
+          pin1: "net.USB_CC1",
+          pin2: "net.GND",
+        }}
       />
+
       <resistor
         name="R2"
         displayName="USB CC2 Rd"
@@ -73,7 +100,12 @@ export default function BluetoothSpeaker() {
         pcbY={-15.5}
         schX={-10}
         schY={3}
+        connections={{
+          pin1: "net.USB_CC2",
+          pin2: "net.GND",
+        }}
       />
+
       <fuse
         name="F1"
         displayName="1.1A RESETTABLE FUSE"
@@ -84,6 +116,10 @@ export default function BluetoothSpeaker() {
         pcbY={-12.5}
         schX={-9}
         schY={7}
+        connections={{
+          pin1: "net.USB_VBUS",
+          pin2: "net.V5",
+        }}
       />
 
       {/* 5 V to 3.3 V regulator for the ESP32. */}
@@ -95,8 +131,14 @@ export default function BluetoothSpeaker() {
         pcbRotation={90}
         schX={-5}
         schY={7}
-        internallyConnectedPins={[["VOUT1", "VOUT2"]]}
+        connections={{
+          VIN: "net.V5",
+          GND: "net.GND",
+          VOUT1: "net.V3V3",
+          VOUT2: "net.V3V3",
+        }}
       />
+
       <capacitor
         name="C1"
         displayName="LDO INPUT BULK"
@@ -106,7 +148,12 @@ export default function BluetoothSpeaker() {
         pcbY={-11}
         schX={-5}
         schY={9}
+        connections={{
+          pin1: "net.V5",
+          pin2: "net.GND",
+        }}
       />
+
       <capacitor
         name="C2"
         displayName="LDO OUTPUT BULK"
@@ -116,7 +163,12 @@ export default function BluetoothSpeaker() {
         pcbY={-10}
         schX={-1}
         schY={7}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.GND",
+        }}
       />
+
       <capacitor
         name="C3"
         displayName="ESP32 BULK"
@@ -126,7 +178,12 @@ export default function BluetoothSpeaker() {
         pcbY={-7}
         schX={-2}
         schY={4}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.GND",
+        }}
       />
+
       <capacitor
         name="C4"
         displayName="ESP32 BYPASS"
@@ -136,6 +193,10 @@ export default function BluetoothSpeaker() {
         pcbY={-5}
         schX={0}
         schY={4}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.GND",
+        }}
       />
 
       {/* Bluetooth Classic / A2DP controller. */}
@@ -159,14 +220,98 @@ export default function BluetoothSpeaker() {
             "pin47",
           ],
         ]}
+        connections={{
+          "3V3": "net.V3V3",
+          GND1: "net.GND",
+          GND2: "net.GND",
+          GND3: "net.GND",
+          GND4: "net.GND",
+          EN: "net.ESP_EN",
+          IO0: "net.ESP_IO0",
+          TXD0: "net.UART_TX",
+          RXD0: "net.UART_RX",
+          IO32: "net.BTN_PLAY",
+          IO33: "net.BTN_VOL_UP",
+          IO27: "net.BTN_VOL_DOWN",
+          IO19: "net.STATUS_LED_GPIO",
+          IO26: "net.I2S_BCLK",
+          IO25: "net.I2S_LRCLK",
+          IO22: "net.I2S_DIN",
+          IO23: "net.AMP_MODE_GPIO",
+        }}
       />
 
       {/* Reset and boot circuitry plus programming header. */}
-      <resistor name="R3" resistance="10k" footprint="0603" pcbX={-3} pcbY={11} schX={-1} schY={-2} />
-      <capacitor name="C5" capacitance="1uF" footprint="0603" pcbX={-3} pcbY={8} schX={-1} schY={-3.5} />
-      <pushbutton name="SW1" displayName="RESET" footprint={buttonFootprint} pcbX={-1} pcbY={16} schX={-4} schY={-3} />
-      <resistor name="R4" resistance="10k" footprint="0603" pcbX={2} pcbY={11} schX={2} schY={-3} />
-      <pushbutton name="SW2" displayName="BOOT" footprint={buttonFootprint} pcbX={5} pcbY={16} schX={5} schY={-3} />
+      <resistor
+        name="R3"
+        resistance="10k"
+        footprint="0603"
+        pcbX={-3}
+        pcbY={11}
+        schX={-1}
+        schY={-2}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.ESP_EN",
+        }}
+      />
+
+      <capacitor
+        name="C5"
+        capacitance="1uF"
+        footprint="0603"
+        pcbX={-3}
+        pcbY={8}
+        schX={-1}
+        schY={-3.5}
+        connections={{
+          pin1: "net.ESP_EN",
+          pin2: "net.GND",
+        }}
+      />
+
+      <pushbutton
+        name="SW1"
+        displayName="RESET"
+        footprint={buttonFootprint}
+        pcbX={-1}
+        pcbY={16}
+        schX={-4}
+        schY={-3}
+        connections={{
+          pin1: "net.ESP_EN",
+          pin2: "net.GND",
+        }}
+      />
+
+      <resistor
+        name="R4"
+        resistance="10k"
+        footprint="0603"
+        pcbX={2}
+        pcbY={11}
+        schX={2}
+        schY={-3}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.ESP_IO0",
+        }}
+      />
+
+      <pushbutton
+        name="SW2"
+        displayName="BOOT"
+        footprint={buttonFootprint}
+        pcbX={5}
+        pcbY={16}
+        schX={5}
+        schY={-3}
+        connections={{
+          pin1: "net.ESP_IO0",
+          pin2: "net.GND",
+        }}
+      />
+
       <pinheader
         name="J3"
         displayName="UART PROGRAM"
@@ -186,6 +331,14 @@ export default function BluetoothSpeaker() {
           pin6: "IO0",
         }}
         showSilkscreenPinLabels
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.GND",
+          pin3: "net.UART_TX",
+          pin4: "net.UART_RX",
+          pin5: "net.ESP_EN",
+          pin6: "net.ESP_IO0",
+        }}
       />
 
       {/* MAX98357A mono I2S class-D amplifier. */}
@@ -196,8 +349,35 @@ export default function BluetoothSpeaker() {
         pcbY={5}
         schX={12}
         schY={2}
+        pinAttributes={
+          {
+            pin3: { requiresGround: true },
+            pin7: { requiresPower: true },
+            pin8: { requiresPower: true },
+            pin11: { requiresGround: true },
+            pin15: { requiresGround: true },
+            pin17: { requiresGround: true },
+          } as any
+        }
         noConnect={["pin5", "pin6", "pin12", "pin13"]}
-      />
+        connections={{
+          BCLK: "net.I2S_BCLK",
+          LRCLK: "net.I2S_LRCLK",
+          DIN: "net.I2S_DIN",
+          N_SD_MODE: "net.AMP_SD_MODE",
+          GAIN: "net.GND",
+          VDD: "net.V5",
+          VDD2: "net.V5",
+          GND: "net.GND",
+          GND2: "net.GND",
+          GND3: "net.GND",
+          EP: "net.GND",
+          OUTP: "net.SPK_POS",
+          OUTN: "net.SPK_NEG",
+        }}
+      >
+        <courtyardrect width="3.6mm" height="3.6mm" />
+      </MAX98357AETE_T>
       <capacitor
         name="C6"
         displayName="AMP BULK"
@@ -207,7 +387,12 @@ export default function BluetoothSpeaker() {
         pcbY={1}
         schX={9}
         schY={6}
+        connections={{
+          pin1: "net.V5",
+          pin2: "net.GND",
+        }}
       />
+
       <capacitor
         name="C7"
         displayName="AMP BYPASS"
@@ -217,7 +402,12 @@ export default function BluetoothSpeaker() {
         pcbY={1}
         schX={11}
         schY={6}
+        connections={{
+          pin1: "net.V5",
+          pin2: "net.GND",
+        }}
       />
+
       <resistor
         name="R5"
         displayName="MONO MIX / AMP ENABLE"
@@ -227,7 +417,12 @@ export default function BluetoothSpeaker() {
         pcbY={8}
         schX={8}
         schY={1}
+        connections={{
+          pin1: "net.AMP_MODE_GPIO",
+          pin2: "net.AMP_SD_MODE",
+        }}
       />
+
       <pinheader
         name="J2"
         displayName="SPEAKER 4-8 OHM"
@@ -243,128 +438,145 @@ export default function BluetoothSpeaker() {
         schY={2}
         pinLabels={{ pin1: "SPK_POS", pin2: "SPK_NEG" }}
         showSilkscreenPinLabels
+        connections={{
+          pin1: "net.SPK_POS",
+          pin2: "net.SPK_NEG",
+        }}
       />
 
       {/* User controls. Firmware uses active-low buttons. */}
-      <resistor name="R6" resistance="10k" footprint="0603" pcbX={13} pcbY={-10} schX={8} schY={-4} />
-      <pushbutton name="SW3" displayName="PLAY / PAUSE" footprint={buttonFootprint} pcbX={13} pcbY={-17} schX={8} schY={-6} />
-      <resistor name="R7" resistance="10k" footprint="0603" pcbX={22} pcbY={-10} schX={12} schY={-4} />
-      <pushbutton name="SW4" displayName="VOLUME +" footprint={buttonFootprint} pcbX={22} pcbY={-17} schX={12} schY={-6} />
-      <resistor name="R8" resistance="10k" footprint="0603" pcbX={31} pcbY={-10} schX={16} schY={-4} />
-      <pushbutton name="SW5" displayName="VOLUME -" footprint={buttonFootprint} pcbX={31} pcbY={-17} schX={16} schY={-6} />
+      <resistor
+        name="R6"
+        resistance="10k"
+        footprint="0603"
+        pcbX={13}
+        pcbY={-10}
+        schX={8}
+        schY={-4}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.BTN_PLAY",
+        }}
+      />
+
+      <pushbutton
+        name="SW3"
+        displayName="PLAY / PAUSE"
+        footprint={buttonFootprint}
+        pcbX={13}
+        pcbY={-17}
+        schX={8}
+        schY={-6}
+        connections={{
+          pin1: "net.BTN_PLAY",
+          pin2: "net.GND",
+        }}
+      />
+
+      <resistor
+        name="R7"
+        resistance="10k"
+        footprint="0603"
+        pcbX={22}
+        pcbY={-10}
+        schX={12}
+        schY={-4}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.BTN_VOL_UP",
+        }}
+      />
+
+      <pushbutton
+        name="SW4"
+        displayName="VOLUME +"
+        footprint={buttonFootprint}
+        pcbX={22}
+        pcbY={-17}
+        schX={12}
+        schY={-6}
+        connections={{
+          pin1: "net.BTN_VOL_UP",
+          pin2: "net.GND",
+        }}
+      />
+
+      <resistor
+        name="R8"
+        resistance="10k"
+        footprint="0603"
+        pcbX={31}
+        pcbY={-10}
+        schX={16}
+        schY={-4}
+        connections={{
+          pin1: "net.V3V3",
+          pin2: "net.BTN_VOL_DOWN",
+        }}
+      />
+
+      <pushbutton
+        name="SW5"
+        displayName="VOLUME -"
+        footprint={buttonFootprint}
+        pcbX={31}
+        pcbY={-17}
+        schX={16}
+        schY={-6}
+        connections={{
+          pin1: "net.BTN_VOL_DOWN",
+          pin2: "net.GND",
+        }}
+      />
 
       {/* Status LED driven by GPIO19. */}
-      <resistor name="R9" resistance="1k" footprint="0603" pcbX={5} pcbY={13} schX={8} schY={-1} />
-      <led name="D1" displayName="STATUS" color="blue" footprint="0603" pcbX={8} pcbY={13} schX={11} schY={-1} />
+      <resistor
+        name="R9"
+        resistance="1k"
+        footprint="0603"
+        pcbX={5}
+        pcbY={13}
+        schX={8}
+        schY={-1}
+        connections={{
+          pin1: "net.STATUS_LED_GPIO",
+          pin2: "net.STATUS_LED_ANODE",
+        }}
+      />
 
-      {/* USB-C power and configuration. */}
-      <trace from=".J1 > .A4B9" to="net.USB_VBUS" width="0.8mm" />
-      <trace from=".J1 > .B4A9" to="net.USB_VBUS" width="0.8mm" />
-      <trace from=".F1 > .pin1" to="net.USB_VBUS" width="0.8mm" />
-      <trace from=".F1 > .pin2" to="net.V5" width="0.8mm" />
-      <trace from=".J1 > .A5" to=".R1 > .pin1" />
-      <trace from=".R1 > .pin2" to="net.GND" />
-      <trace from=".J1 > .B5" to=".R2 > .pin1" />
-      <trace from=".R2 > .pin2" to="net.GND" />
-      <trace from=".J1 > .A1B12" to="net.GND" width="0.8mm" />
-      <trace from=".J1 > .B1A12" to="net.GND" width="0.8mm" />
-      <trace from=".J1 > .EH1" to="net.GND" width="0.5mm" />
-      <trace from=".J1 > .EH2" to="net.GND" width="0.5mm" />
-      <trace from=".J1 > .EH3" to="net.GND" width="0.5mm" />
-      <trace from=".J1 > .EH4" to="net.GND" width="0.5mm" />
-
-      {/* Power rails. */}
-      <trace from=".U2 > .VIN" to="net.V5" width="0.8mm" />
-      <trace from=".U2 > .GND" to="net.GND" width="0.8mm" />
-      <trace from=".U2 > .VOUT1" to="net.V3V3" width="0.6mm" />
-      <trace from=".U2 > .VOUT2" to="net.V3V3" width="0.6mm" />
-      <trace from=".C1 > .pin1" to="net.V5" width="0.6mm" />
-      <trace from=".C1 > .pin2" to="net.GND" width="0.6mm" />
-      <trace from=".C2 > .pin1" to="net.V3V3" width="0.6mm" />
-      <trace from=".C2 > .pin2" to="net.GND" width="0.6mm" />
-      <trace from=".C3 > .pin1" to="net.V3V3" width="0.5mm" />
-      <trace from=".C3 > .pin2" to="net.GND" width="0.5mm" />
-      <trace from=".C4 > .pin1" to="net.V3V3" width="0.5mm" />
-      <trace from=".C4 > .pin2" to="net.GND" width="0.5mm" />
-      <trace from=".U3 > .3V3" to="net.V3V3" width="0.6mm" />
-      <trace from=".U3 > .GND1" to="net.GND" width="0.5mm" />
-      <trace from=".U3 > .GND2" to="net.GND" width="0.5mm" />
-      <trace from=".U3 > .GND3" to="net.GND" width="0.5mm" />
-      <trace from=".U3 > .GND4" to="net.GND" width="0.5mm" />
-
-      {/* ESP32 reset, boot, UART, buttons, and LED. */}
-      <trace from=".U3 > .EN" to="net.ESP_EN" />
-      <trace from=".R3 > .pin1" to="net.V3V3" />
-      <trace from=".R3 > .pin2" to="net.ESP_EN" />
-      <trace from=".C5 > .pin1" to="net.ESP_EN" />
-      <trace from=".C5 > .pin2" to="net.GND" />
-      <trace from=".SW1 > .pin1" to="net.ESP_EN" />
-      <trace from=".SW1 > .pin2" to="net.GND" />
-      <trace from=".U3 > .IO0" to="net.ESP_IO0" />
-      <trace from=".R4 > .pin1" to="net.V3V3" />
-      <trace from=".R4 > .pin2" to="net.ESP_IO0" />
-      <trace from=".SW2 > .pin1" to="net.ESP_IO0" />
-      <trace from=".SW2 > .pin2" to="net.GND" />
-      <trace from=".U3 > .TXD0" to="net.UART_TX" />
-      <trace from=".U3 > .RXD0" to="net.UART_RX" />
-      <trace from=".J3 > .pin1" to="net.V3V3" />
-      <trace from=".J3 > .pin2" to="net.GND" />
-      <trace from=".J3 > .pin3" to="net.UART_TX" />
-      <trace from=".J3 > .pin4" to="net.UART_RX" />
-      <trace from=".J3 > .pin5" to="net.ESP_EN" />
-      <trace from=".J3 > .pin6" to="net.ESP_IO0" />
-
-      <trace from=".U3 > .IO32" to="net.BTN_PLAY" />
-      <trace from=".R6 > .pin1" to="net.V3V3" />
-      <trace from=".R6 > .pin2" to="net.BTN_PLAY" />
-      <trace from=".SW3 > .pin1" to="net.BTN_PLAY" />
-      <trace from=".SW3 > .pin2" to="net.GND" />
-      <trace from=".U3 > .IO33" to="net.BTN_VOL_UP" />
-      <trace from=".R7 > .pin1" to="net.V3V3" />
-      <trace from=".R7 > .pin2" to="net.BTN_VOL_UP" />
-      <trace from=".SW4 > .pin1" to="net.BTN_VOL_UP" />
-      <trace from=".SW4 > .pin2" to="net.GND" />
-      <trace from=".U3 > .IO27" to="net.BTN_VOL_DOWN" />
-      <trace from=".R8 > .pin1" to="net.V3V3" />
-      <trace from=".R8 > .pin2" to="net.BTN_VOL_DOWN" />
-      <trace from=".SW5 > .pin1" to="net.BTN_VOL_DOWN" />
-      <trace from=".SW5 > .pin2" to="net.GND" />
-      <trace from=".U3 > .IO19" to=".R9 > .pin1" />
-      <trace from=".R9 > .pin2" to=".D1 > .anode" />
-      <trace from=".D1 > .cathode" to="net.GND" />
-
-      {/* I2S audio and MAX98357A configuration. */}
-      <trace from=".U3 > .IO26" to="net.I2S_BCLK" />
-      <trace from=".U3 > .IO25" to="net.I2S_LRCLK" />
-      <trace from=".U3 > .IO22" to="net.I2S_DIN" />
-      <trace from=".U3 > .IO23" to=".R5 > .pin1" />
-      <trace from=".R5 > .pin2" to="net.AMP_SD_MODE" />
-      <trace from=".U1 > .BCLK" to="net.I2S_BCLK" />
-      <trace from=".U1 > .LRCLK" to="net.I2S_LRCLK" />
-      <trace from=".U1 > .DIN" to="net.I2S_DIN" />
-      <trace from=".U1 > .N_SD_MODE" to="net.AMP_SD_MODE" />
-      <trace from=".U1 > .GAIN" to="net.GND" />
-      <trace from=".U1 > .VDD" to="net.V5" width="0.8mm" />
-      <trace from=".U1 > .VDD2" to="net.V5" width="0.8mm" />
-      <trace from=".U1 > .GND" to="net.GND" width="0.8mm" />
-      <trace from=".U1 > .GND2" to="net.GND" width="0.8mm" />
-      <trace from=".U1 > .GND3" to="net.GND" width="0.8mm" />
-      <trace from=".U1 > .EP" to="net.GND" width="0.8mm" />
-      <trace from=".C6 > .pin1" to="net.V5" width="0.8mm" />
-      <trace from=".C6 > .pin2" to="net.GND" width="0.8mm" />
-      <trace from=".C7 > .pin1" to="net.V5" width="0.5mm" />
-      <trace from=".C7 > .pin2" to="net.GND" width="0.5mm" />
-      <trace from=".U1 > .OUTP" to=".J2 > .pin1" width="1mm" />
-      <trace from=".U1 > .OUTN" to=".J2 > .pin2" width="1mm" />
+      <XL_1608UBC_04
+        name="D1"
+        displayName="STATUS"
+        color="blue"
+        pcbX={9.5}
+        pcbY={13}
+        schX={11}
+        schY={-1}
+        connections={{
+          anode: "net.STATUS_LED_ANODE",
+          cathode: "net.GND",
+        }}
+      />
 
       {/* Assembly and enclosure legends. */}
-      <silkscreentext text="ESP32 BLUETOOTH SPEAKER" pcbX={9} pcbY={21} fontSize="1.2mm" />
+      <silkscreentext
+        text="ESP32 BLUETOOTH SPEAKER"
+        pcbX={9}
+        pcbY={21}
+        fontSize="1.2mm"
+      />
       <silkscreentext text="USB-C 5V" pcbX={0} pcbY={-19} fontSize="0.9mm" />
       <silkscreentext text="PLAY" pcbX={13} pcbY={-21} fontSize="0.8mm" />
       <silkscreentext text="VOL+" pcbX={22} pcbY={-21} fontSize="0.8mm" />
       <silkscreentext text="VOL-" pcbX={31} pcbY={-21} fontSize="0.8mm" />
       <silkscreentext text="4-8 OHM" pcbX={29} pcbY={11} fontSize="0.8mm" />
-      <silkscreentext text="ANTENNA - NO COPPER" pcbX={-31.5} pcbY={7} pcbRotation={90} fontSize="0.7mm" />
+      <silkscreentext
+        text="ANTENNA - NO COPPER"
+        pcbX={-31.5}
+        pcbY={7}
+        pcbRotation={90}
+        fontSize="0.7mm"
+      />
     </board>
-  )
+  );
 }

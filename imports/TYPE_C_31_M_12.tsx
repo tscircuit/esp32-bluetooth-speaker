@@ -1,4 +1,4 @@
-import type { ChipProps } from "@tscircuit/props"
+import type { ConnectorProps } from "@tscircuit/props"
 
 const pinLabels = {
   pin1: ["EH2"],
@@ -19,10 +19,24 @@ const pinLabels = {
   pin16: ["A4B9"]
 } as const
 
-export const TYPE_C_31_M_12 = (props: ChipProps<typeof pinLabels>) => {
+const pinAttributes = {
+  pin1: { requiresGround: true },
+  pin2: { requiresGround: true },
+  pin3: { requiresGround: true },
+  pin4: { requiresGround: true },
+  pin13: { requiresGround: true },
+  pin14: { requiresGround: true },
+  pin15: { requiresPower: true },
+  pin16: { requiresPower: true },
+} as const
+
+export const TYPE_C_31_M_12 = (props: ConnectorProps) => {
   return (
-    <chip
+    <connector
+      standard="usb_c"
+      pinCount={16}
       pinLabels={pinLabels}
+      pinAttributes={pinAttributes}
       supplierPartNumbers={{
   "jlcpcb": [
     "C165948"
