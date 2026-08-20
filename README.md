@@ -18,6 +18,7 @@ A compact dual-powered mono Bluetooth speaker PCB built with tscircuit. An ESP32
 - AMS1117-3.3 supply, local bulk/bypass capacitors, and a bottom GND plane
 - Reset and boot buttons for manual ESP32 download-mode entry
 - Play/pause, volume-up, and volume-down buttons plus a status LED
+- Three-sheet schematic with labeled USB/system-power, battery-power, controller, audio, and user-interface sections
 - Routed PCB, schematic, circuit JSON, 3D render, and regression snapshots
 
 ## Power architecture

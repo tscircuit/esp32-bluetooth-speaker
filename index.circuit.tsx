@@ -13,6 +13,36 @@ import { XL_1608UBC_04 } from "./imports/XL_1608UBC_04";
 
 const buttonFootprint = "kicad:Button_Switch_SMD/SW_SPST_PTS810";
 
+const sch = {
+  usbInput: { schSheetName: "usb_power", schSectionName: "usb_input" },
+  usbSerial: { schSheetName: "usb_power", schSectionName: "usb_serial" },
+  systemRegulator: {
+    schSheetName: "usb_power",
+    schSectionName: "system_regulator",
+  },
+  batteryProtection: {
+    schSheetName: "battery_power",
+    schSectionName: "battery_protection",
+  },
+  batteryConverter: {
+    schSheetName: "battery_power",
+    schSectionName: "battery_converter",
+  },
+  powerPriority: {
+    schSheetName: "battery_power",
+    schSectionName: "power_priority",
+  },
+  esp32Core: { schSheetName: "main_audio", schSectionName: "esp32_core" },
+  audioOutput: {
+    schSheetName: "main_audio",
+    schSectionName: "audio_output",
+  },
+  userControls: {
+    schSheetName: "main_audio",
+    schSectionName: "user_controls",
+  },
+} as const;
+
 export default function BluetoothSpeaker() {
   return (
     <board
@@ -36,6 +66,42 @@ export default function BluetoothSpeaker() {
       <net name="GND" nominalTraceWidth="0.5mm" isGroundNet />
       <net name="SPK_POS" nominalTraceWidth="1mm" />
       <net name="SPK_NEG" nominalTraceWidth="1mm" />
+
+      <schematicsheet
+        name="usb_power"
+        displayName="USB & SYSTEM POWER"
+        sheetIndex={1}
+      >
+        <schematicsection name="usb_input" displayName="USB-C INPUT" />
+        <schematicsection name="usb_serial" displayName="USB-UART" />
+        <schematicsection name="system_regulator" displayName="3.3 V RAIL" />
+      </schematicsheet>
+
+      <schematicsheet
+        name="battery_power"
+        displayName="4×AA BATTERY POWER"
+        sheetIndex={2}
+      >
+        <schematicsection name="battery_protection" displayName="AA INPUT" />
+        <schematicsection
+          name="battery_converter"
+          displayName="5 V CONVERTER"
+        />
+        <schematicsection name="power_priority" displayName="USB PRIORITY" />
+      </schematicsheet>
+
+      <schematicsheet
+        name="main_audio"
+        displayName="CONTROLLER, AUDIO & USER INTERFACE"
+        sheetIndex={3}
+      >
+        <schematicsection name="esp32_core" displayName="ESP32 CORE" />
+        <schematicsection name="audio_output" displayName="AUDIO OUTPUT" />
+        <schematicsection
+          name="user_controls"
+          displayName="CONTROLS & STATUS"
+        />
+      </schematicsheet>
 
       {/* Keep every copper layer clear below the ESP32 PCB antenna. */}
       <keepout
@@ -66,13 +132,14 @@ export default function BluetoothSpeaker() {
 
       {/* USB-C 5 V sink plus USB 2.0 data for the CH340C bridge. */}
       <TYPE_C_31_M_12
+        {...sch.usbInput}
         name="J1"
         displayName="USB-C 5V POWER"
         pcbX={0}
         pcbY={-17.3}
         pcbRotation={0}
-        schX={-14}
-        schY={4}
+        schX={-9}
+        schY={2}
         noConnect={["B8", "A8"]}
         connections={{
           A4B9: "net.USB_VBUS",
@@ -94,6 +161,7 @@ export default function BluetoothSpeaker() {
 
       {/* USB full-speed data to 3.3 V UART. Manual BOOT/RESET buttons enter download mode. */}
       <resistor
+        {...sch.usbSerial}
         name="R10"
         displayName="USB D+ SERIES"
         resistance="22"
@@ -101,8 +169,8 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={0}
         pcbY={-7.5}
-        schX={-11}
-        schY={0}
+        schX={-5}
+        schY={-3}
         connections={{
           pin1: "net.USB_DP_CONN",
           pin2: "net.USB_DP",
@@ -110,6 +178,7 @@ export default function BluetoothSpeaker() {
       />
 
       <resistor
+        {...sch.usbSerial}
         name="R11"
         displayName="USB D- SERIES"
         resistance="22"
@@ -117,8 +186,8 @@ export default function BluetoothSpeaker() {
         layer="top"
         pcbX={0}
         pcbY={-12}
-        schX={-11}
-        schY={-1.5}
+        schX={-5}
+        schY={-4.5}
         connections={{
           pin1: "net.USB_DM_CONN",
           pin2: "net.USB_DM",
@@ -126,14 +195,15 @@ export default function BluetoothSpeaker() {
       />
 
       <CH340C
+        {...sch.usbSerial}
         name="U4"
         displayName="USB-UART BRIDGE"
         layer="bottom"
         pcbX={7}
         pcbY={-6}
         pcbRotation={0}
-        schX={-7}
-        schY={-2}
+        schX={-1.5}
+        schY={-3.5}
         connections={{
           GND: "net.GND",
           TXD: "net.UART_RX",
@@ -155,6 +225,7 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.usbSerial}
         name="C8"
         displayName="USB-UART BYPASS"
         capacitance="100nF"
@@ -162,8 +233,9 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={14}
         pcbY={-4.5}
-        schX={-4}
-        schY={-5}
+        schX={2.5}
+        schY={-4.5}
+        schOrientation="vertical"
         connections={{
           pin1: "net.V3V3",
           pin2: "net.GND",
@@ -171,14 +243,15 @@ export default function BluetoothSpeaker() {
       />
 
       <resistor
+        {...sch.usbInput}
         name="R1"
         displayName="USB CC1 Rd"
         resistance="5.1k"
         footprint="0603"
         pcbX={-6}
         pcbY={-13}
-        schX={-10}
-        schY={5}
+        schX={-6}
+        schY={3}
         connections={{
           pin1: "net.USB_CC1",
           pin2: "net.GND",
@@ -186,14 +259,15 @@ export default function BluetoothSpeaker() {
       />
 
       <resistor
+        {...sch.usbInput}
         name="R2"
         displayName="USB CC2 Rd"
         resistance="5.1k"
         footprint="0603"
         pcbX={5}
         pcbY={-10.5}
-        schX={-10}
-        schY={3}
+        schX={-6}
+        schY={1}
         connections={{
           pin1: "net.USB_CC2",
           pin2: "net.GND",
@@ -201,6 +275,7 @@ export default function BluetoothSpeaker() {
       />
 
       <fuse
+        {...sch.usbInput}
         name="F1"
         displayName="1.1A RESETTABLE FUSE"
         currentRating="1.1A"
@@ -208,8 +283,8 @@ export default function BluetoothSpeaker() {
         footprint="1206"
         pcbX={0}
         pcbY={-10}
-        schX={-9}
-        schY={7}
+        schX={-6}
+        schY={5}
         connections={{
           pin1: "net.USB_VBUS",
           pin2: "net.USB_5V_FUSED",
@@ -218,12 +293,13 @@ export default function BluetoothSpeaker() {
 
       {/* Schottky isolation prevents the battery rail from back-feeding USB VBUS. */}
       <SS34
+        {...sch.usbInput}
         name="D2"
         displayName="USB POWER OR"
         pcbX={1.5}
         pcbY={-5.5}
-        schX={-5}
-        schY={11}
+        schX={-3}
+        schY={5}
         connections={{
           anode: "net.USB_5V_FUSED",
           cathode: "net.V5",
@@ -232,13 +308,14 @@ export default function BluetoothSpeaker() {
 
       {/* External 4xAA pack. This board intentionally does not charge AA cells. */}
       <S2B_PH_K_S_LF__SN_
+        {...sch.batteryProtection}
         name="J5"
         displayName="4xAA BATTERY JST-PH"
         pcbX={-22}
         pcbY={-15.3}
         pcbRotation={180}
-        schX={-17}
-        schY={-12}
+        schX={-15.75}
+        schY={4}
         connections={{
           BAT_POS: "net.BAT_RAW",
           BAT_NEG: "net.GND",
@@ -246,6 +323,7 @@ export default function BluetoothSpeaker() {
       />
 
       <fuse
+        {...sch.batteryProtection}
         name="F2"
         displayName="2A BATTERY PTC"
         currentRating="2A"
@@ -255,8 +333,8 @@ export default function BluetoothSpeaker() {
         pcbX={-25}
         pcbY={-11}
         pcbRotation={90}
-        schX={-14}
-        schY={-12}
+        schX={-12}
+        schY={4}
         connections={{
           pin1: "net.BAT_RAW",
           pin2: "net.BAT_FUSED",
@@ -264,14 +342,15 @@ export default function BluetoothSpeaker() {
       />
 
       <SS34
+        {...sch.batteryProtection}
         name="D3"
         displayName="BATTERY REVERSE PROTECTION"
         layer="bottom"
         pcbX={-22}
         pcbY={-2}
         pcbRotation={90}
-        schX={-11}
-        schY={-12}
+        schX={-7.75}
+        schY={4}
         connections={{
           anode: "net.BAT_FUSED",
           cathode: "net.BAT_PROTECTED",
@@ -280,13 +359,15 @@ export default function BluetoothSpeaker() {
 
       {/* Fixed 5 V buck-boost follows TI's minimum-component application. */}
       <TPS630701RNMR
+        {...sch.batteryConverter}
         name="U5"
         displayName="4xAA 5V BUCK-BOOST"
         layer="bottom"
         pcbX={-15}
         pcbY={-10}
-        schX={-7}
-        schY={-12}
+        schX={0}
+        schY={3}
+        schHeight={1.6}
         connections={{
           PS_SYNC: "net.BAT_PROTECTED",
           PG: "net.BAT_PG_NC",
@@ -307,13 +388,14 @@ export default function BluetoothSpeaker() {
       />
 
       <XFL4020_152MEC
+        {...sch.batteryConverter}
         name="L1"
         displayName="BUCK-BOOST 1.5UH"
         layer="bottom"
         pcbX={-15}
         pcbY={-5}
-        schX={-7}
-        schY={-9}
+        schX={0}
+        schY={6}
         connections={{
           pin1: "net.BAT_SW1",
           pin2: "net.BAT_SW2",
@@ -321,6 +403,7 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.batteryConverter}
         name="C9"
         displayName="BAT INPUT BULK 1"
         capacitance="10uF"
@@ -328,11 +411,13 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-20}
         pcbY={-13}
-        schX={-10}
-        schY={-15}
+        schX={-4.5}
+        schY={0}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_PROTECTED", pin2: "net.GND" }}
       />
       <capacitor
+        {...sch.batteryConverter}
         name="C10"
         displayName="BAT INPUT BULK 2"
         capacitance="10uF"
@@ -340,11 +425,13 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-20}
         pcbY={-10}
-        schX={-8}
-        schY={-15}
+        schX={-2}
+        schY={0}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_PROTECTED", pin2: "net.GND" }}
       />
       <capacitor
+        {...sch.batteryConverter}
         name="C11"
         displayName="BAT INPUT LOCAL"
         capacitance="10uF"
@@ -352,12 +439,14 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-20}
         pcbY={-7}
-        schX={-6}
-        schY={-15}
+        schX={0.5}
+        schY={0}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_PROTECTED", pin2: "net.GND" }}
       />
 
       <capacitor
+        {...sch.batteryConverter}
         name="C12"
         displayName="BAT OUTPUT BULK 1"
         capacitance="22uF"
@@ -365,11 +454,13 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-10}
         pcbY={-13}
-        schX={-4}
-        schY={-15}
+        schX={2.5}
+        schY={0}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_5V", pin2: "net.GND" }}
       />
       <capacitor
+        {...sch.batteryConverter}
         name="C13"
         displayName="BAT OUTPUT BULK 2"
         capacitance="22uF"
@@ -377,11 +468,13 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-10}
         pcbY={-10}
-        schX={-2}
-        schY={-15}
+        schX={6}
+        schY={0}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_5V", pin2: "net.GND" }}
       />
       <capacitor
+        {...sch.batteryConverter}
         name="C14"
         displayName="BAT OUTPUT BULK 3"
         capacitance="22uF"
@@ -389,11 +482,13 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-10}
         pcbY={-7}
-        schX={0}
-        schY={-15}
+        schX={9.5}
+        schY={0}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_5V", pin2: "net.GND" }}
       />
       <capacitor
+        {...sch.batteryConverter}
         name="C15"
         displayName="BAT OUTPUT LOCAL"
         capacitance="10uF"
@@ -401,11 +496,13 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-10}
         pcbY={-4}
-        schX={2}
-        schY={-15}
+        schX={13}
+        schY={0}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_5V", pin2: "net.GND" }}
       />
       <capacitor
+        {...sch.batteryConverter}
         name="C16"
         displayName="BUCK-BOOST VAUX"
         capacitance="100nF"
@@ -413,13 +510,15 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-15}
         pcbY={-14.5}
-        schX={-4}
-        schY={-10}
+        schX={3}
+        schY={5}
+        schOrientation="vertical"
         connections={{ pin1: "net.BAT_VAUX", pin2: "net.GND" }}
       />
 
       {/* USB VBUS turns Q1 on and disables U5, giving USB deterministic priority. */}
       <resistor
+        {...sch.powerPriority}
         name="R12"
         displayName="BAT ENABLE PULLUP"
         resistance="100k"
@@ -427,11 +526,12 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-6}
         pcbY={-8}
-        schX={-8}
-        schY={-17}
+        schX={-3}
+        schY={-5}
         connections={{ pin1: "net.BAT_PROTECTED", pin2: "net.BAT_ENABLE" }}
       />
       <resistor
+        {...sch.powerPriority}
         name="R13"
         displayName="USB PRIORITY GATE"
         resistance="100k"
@@ -439,11 +539,12 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-2.5}
         pcbY={-10}
-        schX={-5}
-        schY={-17}
+        schX={0}
+        schY={-5}
         connections={{ pin1: "net.USB_VBUS", pin2: "net.USB_PRESENT_GATE" }}
       />
       <resistor
+        {...sch.powerPriority}
         name="R14"
         displayName="USB GATE PULLDOWN"
         resistance="1M"
@@ -451,19 +552,20 @@ export default function BluetoothSpeaker() {
         layer="bottom"
         pcbX={-9}
         pcbY={-16.5}
-        schX={-2}
-        schY={-17}
+        schX={3}
+        schY={-5}
         connections={{ pin1: "net.USB_PRESENT_GATE", pin2: "net.GND" }}
       />
 
       <A_2N7002
+        {...sch.powerPriority}
         name="Q1"
         displayName="USB PRIORITY DISABLE"
         layer="bottom"
         pcbX={-6}
         pcbY={-11}
-        schX={-5}
-        schY={-19}
+        schX={0}
+        schY={-7}
         connections={{
           pin1: "net.USB_PRESENT_GATE",
           pin2: "net.GND",
@@ -472,14 +574,15 @@ export default function BluetoothSpeaker() {
       />
 
       <SS34
+        {...sch.powerPriority}
         name="D4"
         displayName="BATTERY POWER OR"
         layer="bottom"
         pcbX={-6}
         pcbY={-3}
         pcbRotation={90}
-        schX={-2}
-        schY={-12}
+        schX={6}
+        schY={-5}
         connections={{
           anode: "net.BAT_5V",
           cathode: "net.V5",
@@ -488,13 +591,14 @@ export default function BluetoothSpeaker() {
 
       {/* 5 V to 3.3 V regulator for the ESP32. */}
       <AMS1117_3_3
+        {...sch.systemRegulator}
         name="U2"
         displayName="3.3V REGULATOR"
         pcbX={-12}
         pcbY={-11}
         pcbRotation={90}
-        schX={-5}
-        schY={7}
+        schX={2}
+        schY={3}
         connections={{
           VIN: "net.V5",
           GND: "net.GND",
@@ -504,14 +608,16 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.systemRegulator}
         name="C1"
         displayName="LDO INPUT BULK"
         capacitance="22uF"
         footprint="1206"
         pcbX={-5}
         pcbY={-9}
-        schX={-5}
-        schY={9}
+        schX={2}
+        schY={5}
+        schOrientation="vertical"
         connections={{
           pin1: "net.V5",
           pin2: "net.GND",
@@ -519,14 +625,16 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.systemRegulator}
         name="C2"
         displayName="LDO OUTPUT BULK"
         capacitance="22uF"
         footprint="1206"
         pcbX={-19}
         pcbY={-10}
-        schX={-1}
-        schY={7}
+        schX={5}
+        schY={3}
+        schOrientation="vertical"
         connections={{
           pin1: "net.V3V3",
           pin2: "net.GND",
@@ -534,14 +642,16 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.esp32Core}
         name="C3"
         displayName="ESP32 BULK"
         capacitance="10uF"
         footprint="0805"
         pcbX={-19}
         pcbY={-6}
-        schX={-2}
+        schX={-10.5}
         schY={4}
+        schOrientation="vertical"
         connections={{
           pin1: "net.V3V3",
           pin2: "net.GND",
@@ -549,14 +659,16 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.esp32Core}
         name="C4"
         displayName="ESP32 BYPASS"
         capacitance="100nF"
         footprint="0603"
         pcbX={-5}
         pcbY={-6}
-        schX={0}
+        schX={-7.8}
         schY={4}
+        schOrientation="vertical"
         connections={{
           pin1: "net.V3V3",
           pin2: "net.GND",
@@ -565,12 +677,14 @@ export default function BluetoothSpeaker() {
 
       {/* Bluetooth Classic / A2DP controller. */}
       <ESP32_WROOM_32E_N8
+        {...sch.esp32Core}
         name="U3"
         displayName="ESP32-WROOM-32E-N8"
         pcbX={-14}
         pcbY={7}
-        schX={2}
+        schX={-5.5}
         schY={1}
+        schHeight={4.8}
         internallyConnectedPins={[
           [
             "GND4",
@@ -607,12 +721,13 @@ export default function BluetoothSpeaker() {
 
       {/* Reset and boot circuitry for manual USB download-mode entry. */}
       <resistor
+        {...sch.esp32Core}
         name="R3"
         resistance="10k"
         footprint="0603"
         pcbX={-1}
         pcbY={11}
-        schX={-1}
+        schX={-9}
         schY={-2}
         connections={{
           pin1: "net.V3V3",
@@ -621,13 +736,15 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.esp32Core}
         name="C5"
         capacitance="1uF"
         footprint="0603"
         pcbX={-1}
         pcbY={8}
-        schX={-1}
-        schY={-3.5}
+        schX={-9}
+        schY={-4}
+        schOrientation="vertical"
         connections={{
           pin1: "net.ESP_EN",
           pin2: "net.GND",
@@ -635,13 +752,14 @@ export default function BluetoothSpeaker() {
       />
 
       <pushbutton
+        {...sch.esp32Core}
         name="SW1"
         displayName="RESET"
         footprint={buttonFootprint}
         pcbX={0}
         pcbY={17.5}
-        schX={-4}
-        schY={-3}
+        schX={-6}
+        schY={-4}
         connections={{
           pin1: "net.ESP_EN",
           pin2: "net.GND",
@@ -649,13 +767,14 @@ export default function BluetoothSpeaker() {
       />
 
       <resistor
+        {...sch.esp32Core}
         name="R4"
         resistance="10k"
         footprint="0603"
         pcbX={4}
         pcbY={11}
-        schX={2}
-        schY={-3}
+        schX={-3}
+        schY={-2}
         connections={{
           pin1: "net.V3V3",
           pin2: "net.ESP_IO0",
@@ -663,13 +782,14 @@ export default function BluetoothSpeaker() {
       />
 
       <pushbutton
+        {...sch.esp32Core}
         name="SW2"
         displayName="BOOT"
         footprint={buttonFootprint}
         pcbX={6}
         pcbY={17.5}
-        schX={5}
-        schY={-3}
+        schX={-3}
+        schY={-4}
         connections={{
           pin1: "net.ESP_IO0",
           pin2: "net.GND",
@@ -678,12 +798,14 @@ export default function BluetoothSpeaker() {
 
       {/* MAX98357A mono I2S class-D amplifier. */}
       <MAX98357AETE_T
+        {...sch.audioOutput}
         name="U1"
         displayName="MAX98357A I2S AMP"
         pcbX={10}
         pcbY={5}
-        schX={12}
+        schX={3}
         schY={2}
+        schHeight={1.2}
         pinAttributes={
           {
             pin3: { requiresGround: true },
@@ -714,14 +836,16 @@ export default function BluetoothSpeaker() {
         <courtyardrect width="3.6mm" height="3.6mm" />
       </MAX98357AETE_T>
       <capacitor
+        {...sch.audioOutput}
         name="C6"
         displayName="AMP BULK"
         capacitance="10uF"
         footprint="0805"
         pcbX={5}
         pcbY={1}
-        schX={9}
-        schY={6}
+        schX={1}
+        schY={5}
+        schOrientation="vertical"
         connections={{
           pin1: "net.V5",
           pin2: "net.GND",
@@ -729,14 +853,16 @@ export default function BluetoothSpeaker() {
       />
 
       <capacitor
+        {...sch.audioOutput}
         name="C7"
         displayName="AMP BYPASS"
         capacitance="100nF"
         footprint="0603"
         pcbX={12}
         pcbY={0.5}
-        schX={11}
-        schY={6}
+        schX={3}
+        schY={5}
+        schOrientation="vertical"
         connections={{
           pin1: "net.V5",
           pin2: "net.GND",
@@ -744,13 +870,14 @@ export default function BluetoothSpeaker() {
       />
 
       <resistor
+        {...sch.audioOutput}
         name="R5"
         displayName="MONO MIX / AMP ENABLE"
         resistance="634k"
         footprint="0603"
         pcbX={4}
         pcbY={7.5}
-        schX={8}
+        schX={0.3}
         schY={1}
         connections={{
           pin1: "net.AMP_MODE_GPIO",
@@ -759,6 +886,7 @@ export default function BluetoothSpeaker() {
       />
 
       <pinheader
+        {...sch.audioOutput}
         name="J2"
         displayName="SPEAKER 4-8 OHM"
         pinCount={2}
@@ -769,7 +897,7 @@ export default function BluetoothSpeaker() {
         pcbX={28}
         pcbY={-4}
         pcbRotation={90}
-        schX={18}
+        schX={9}
         schY={2}
         pinLabels={{ pin1: "SPK_POS", pin2: "SPK_NEG" }}
         showSilkscreenPinLabels
@@ -781,12 +909,13 @@ export default function BluetoothSpeaker() {
 
       {/* Alternate bridge-tied output for a 3.5 mm TS speaker plug. */}
       <PJ_320D
+        {...sch.audioOutput}
         name="J4"
         displayName="3.5MM PASSIVE SPEAKER"
         pcbX={21.7}
         pcbY={8}
         pcbRotation={180}
-        schX={18}
+        schX={9}
         schY={5}
         connections={{
           TIP: "net.SPK_POS",
@@ -798,13 +927,14 @@ export default function BluetoothSpeaker() {
 
       {/* User controls. Firmware uses active-low buttons. */}
       <resistor
+        {...sch.userControls}
         name="R6"
         resistance="10k"
         footprint="0603"
         pcbX={8.5}
         pcbY={-10}
-        schX={8}
-        schY={-4}
+        schX={0}
+        schY={-5}
         connections={{
           pin1: "net.V3V3",
           pin2: "net.BTN_PLAY",
@@ -812,13 +942,14 @@ export default function BluetoothSpeaker() {
       />
 
       <pushbutton
+        {...sch.userControls}
         name="SW3"
         displayName="PLAY / PAUSE"
         footprint={buttonFootprint}
         pcbX={8.5}
         pcbY={-15.5}
-        schX={8}
-        schY={-6}
+        schX={0}
+        schY={-7}
         connections={{
           pin1: "net.BTN_PLAY",
           pin2: "net.GND",
@@ -826,13 +957,14 @@ export default function BluetoothSpeaker() {
       />
 
       <resistor
+        {...sch.userControls}
         name="R7"
         resistance="10k"
         footprint="0603"
         pcbX={16.5}
         pcbY={-10}
-        schX={12}
-        schY={-4}
+        schX={4}
+        schY={-5}
         connections={{
           pin1: "net.V3V3",
           pin2: "net.BTN_VOL_UP",
@@ -840,13 +972,14 @@ export default function BluetoothSpeaker() {
       />
 
       <pushbutton
+        {...sch.userControls}
         name="SW4"
         displayName="VOLUME +"
         footprint={buttonFootprint}
         pcbX={16.5}
         pcbY={-15.5}
-        schX={12}
-        schY={-6}
+        schX={4}
+        schY={-7}
         connections={{
           pin1: "net.BTN_VOL_UP",
           pin2: "net.GND",
@@ -854,13 +987,14 @@ export default function BluetoothSpeaker() {
       />
 
       <resistor
+        {...sch.userControls}
         name="R8"
         resistance="10k"
         footprint="0603"
         pcbX={22}
         pcbY={-10}
-        schX={16}
-        schY={-4}
+        schX={8}
+        schY={-5}
         connections={{
           pin1: "net.V3V3",
           pin2: "net.BTN_VOL_DOWN",
@@ -868,13 +1002,14 @@ export default function BluetoothSpeaker() {
       />
 
       <pushbutton
+        {...sch.userControls}
         name="SW5"
         displayName="VOLUME -"
         footprint={buttonFootprint}
         pcbX={24.5}
         pcbY={-15.5}
-        schX={16}
-        schY={-6}
+        schX={8}
+        schY={-7}
         connections={{
           pin1: "net.BTN_VOL_DOWN",
           pin2: "net.GND",
@@ -883,13 +1018,14 @@ export default function BluetoothSpeaker() {
 
       {/* Status LED driven by GPIO19. */}
       <resistor
+        {...sch.userControls}
         name="R9"
         resistance="1k"
         footprint="0603"
         pcbX={7}
         pcbY={14.5}
-        schX={8}
-        schY={-1}
+        schX={1.8}
+        schY={-2.5}
         connections={{
           pin1: "net.STATUS_LED_GPIO",
           pin2: "net.STATUS_LED_ANODE",
@@ -897,13 +1033,14 @@ export default function BluetoothSpeaker() {
       />
 
       <XL_1608UBC_04
+        {...sch.userControls}
         name="D1"
         displayName="STATUS"
         color="blue"
         pcbX={11}
         pcbY={14.5}
-        schX={11}
-        schY={-1}
+        schX={5.2}
+        schY={-2.5}
         connections={{
           anode: "net.STATUS_LED_ANODE",
           cathode: "net.GND",

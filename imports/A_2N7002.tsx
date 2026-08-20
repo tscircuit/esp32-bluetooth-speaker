@@ -99,14 +99,28 @@ export const A_2N7002 = (props: Omit<TransistorProps, "type">) => {
             ]}
             strokeColor="#880000"
           />
+          <schematicpath
+            points={[
+              { x: 0.4, y: 0.2 },
+              { x: 0.4, y: 0.6 },
+            ]}
+            strokeColor="#880000"
+          />
+          <schematicpath
+            points={[
+              { x: 0.4, y: -0.2 },
+              { x: 0.4, y: -0.6 },
+            ]}
+            strokeColor="#880000"
+          />
           <port
             name="pin3"
             pinNumber={3}
             aliases={["D"]}
             direction="up"
             schX={0.2}
-            schY={0.4}
-            schStemLength={0.2}
+            schY={0.8}
+            schStemLength={0.6}
           />
           <port
             name="pin1"
@@ -123,8 +137,8 @@ export const A_2N7002 = (props: Omit<TransistorProps, "type">) => {
             aliases={["S"]}
             direction="down"
             schX={0.2}
-            schY={-0.4}
-            schStemLength={0.2}
+            schY={-0.8}
+            schStemLength={0.6}
           />
         </symbol>
       }
