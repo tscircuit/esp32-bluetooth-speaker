@@ -1,7 +1,7 @@
 {
   "name": "@tsci/seveibar.esp32-bluetooth-speaker",
   "version": "1.0.2",
-  "description": "USB-C-powered ESP32 Bluetooth A2DP speaker with a MAX98357A I2S amplifier",
+  "description": "USB-C/4xAA-powered ESP32 Bluetooth A2DP speaker with USB-UART and a MAX98357A I2S amplifier",
   "main": "index.circuit.tsx",
   "keywords": [
     "tscircuit",
