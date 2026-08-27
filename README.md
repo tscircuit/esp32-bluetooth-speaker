@@ -1,21 +1,22 @@
 # ESP32 Bluetooth Speaker
 
-A compact dual-powered mono Bluetooth speaker PCB built with tscircuit. An ESP32-WROOM-32E receives Bluetooth Classic A2DP audio and sends I2S to a MAX98357A filterless class-D amplifier. The board can run from USB-C or an external four-AA battery pack.
+A dual-powered mono Bluetooth speaker PCB built with tscircuit. An ESP32-WROOM-32E receives Bluetooth Classic A2DP audio and sends I2S to a MAX98357A filterless class-D amplifier. The board can run from Micro-USB or an external four-AA battery pack.
 
 ![3D board preview](__snapshots__/index.circuit-3d.snap.png)
 
 ## What is included
 
-- 62 mm × 44 mm, two-layer PCB with four 3.2 mm mounting holes
-- ESP32-WROOM-32E-N8 with a full-height, all-layer antenna keepout
+- 100 mm × 80 mm, single-copper-layer PCB with four 3.2 mm mounting holes
+- ESP32-WROOM-32E-N8 with a keepout in the sole top-copper layer beneath the antenna
 - MAX98357A I2S mono amplifier for a 4–8 Ω speaker
 - PJ-320D 3.5 mm jack plus a 5.08 mm header for alternate passive-speaker connections
-- USB-C 5 V input with USB 2.0 data, dual 5.1 kΩ CC sink resistors, and a 1.1 A resettable fuse
+- Micro-USB 5 V input with USB 2.0 data and a 1.1 A resettable fuse
 - CH340C USB-to-UART bridge connected directly to the ESP32 programming UART
 - JST-PH battery input for an external four-AA pack
 - TPS630701 fixed-5 V buck-boost supply, 1.5 µH inductor, input/output filtering, battery PTC, and reverse-polarity protection
-- Automatic USB power priority and Schottky isolation between the USB and battery supplies
-- AMS1117-3.3 supply, local bulk/bypass capacitors, and a bottom GND plane
+- Schottky isolation between the USB and battery-derived 5 V supplies
+- AMS1117-3.3 supply, local bulk/bypass capacitors, and a same-side top GND pour
+- Explicit 0 Ω crossover links that keep every routed copper segment on the top layer
 - Reset and boot buttons for manual ESP32 download-mode entry
 - Play/pause, volume-up, and volume-down buttons plus a status LED
 - Three-sheet schematic with labeled USB/system-power, battery-power, controller, audio, and user-interface sections
@@ -23,11 +24,11 @@ A compact dual-powered mono Bluetooth speaker PCB built with tscircuit. An ESP32
 
 ## Power architecture
 
-USB-C VBUS passes through `F1` and `D2` to the board supply. The four-AA input passes through `F2`, reverse-polarity diode `D3`, the TPS630701 buck-boost stage, and isolation diode `D4`. When USB VBUS is present, `Q1` pulls the buck-boost enable pin low so USB has deterministic priority and the battery converter is not left running.
+Micro-USB VBUS passes through `F1` and isolation diode `D2` to the board supply. The four-AA input passes through `F2`, reverse-polarity diode `D3`, the TPS630701 buck-boost stage, and isolation diode `D4`. The two sources are diode-ORed; the source with the higher post-diode voltage supplies most of the load. Disconnect the battery pack when it is not required, because the battery converter is enabled whenever a pack is connected.
 
-The battery connector is intended for an external holder containing four matched AA alkaline or NiMH cells. The PCB does **not** charge batteries. Never connect the battery input to rechargeable lithium cells, and never attempt to charge installed AA cells through USB-C.
+The battery connector is intended for an external holder containing four matched AA alkaline or NiMH cells. The PCB does **not** charge batteries. Never connect the battery input to rechargeable lithium cells, and never attempt to charge installed AA cells through Micro-USB.
 
-Use a regulated 5 V USB-C source rated for at least 1.5 A, or a four-cell AA pack with a keyed JST-PH mating lead. Observe the `BAT+` and `BAT-` markings even though the input includes series reverse-polarity protection.
+Use a regulated 5 V Micro-USB source rated for at least 1.5 A, or a four-cell AA pack with a keyed JST-PH mating lead. Observe the `BAT+` and `BAT-` markings even though the input includes series reverse-polarity protection.
 
 ## USB programming
 
@@ -38,24 +39,24 @@ Programming mode is manual:
 1. Hold `BOOT`.
 2. Press and release `RESET`.
 3. Release `BOOT`.
-4. Flash the ESP32 through the USB-C serial port.
+4. Flash the ESP32 through the Micro-USB serial port.
 
 ## Firmware pin map
 
 | Function                    | ESP32 GPIO | Direction / behavior                 |
 | --------------------------- | ---------: | ------------------------------------ |
-| I2S BCLK                    |         26 | Output                               |
-| I2S LRCLK / WS              |         25 | Output                               |
-| I2S audio data              |         22 | Output to MAX98357A DIN              |
-| Amplifier enable / mono mix |         23 | Drive high to enable; low shuts down |
-| Play / pause                |         32 | Active-low input                     |
-| Volume up                   |         33 | Active-low input                     |
-| Volume down                 |         27 | Active-low input                     |
+| I2S BCLK                    |         27 | Output                               |
+| I2S LRCLK / WS              |         14 | Output                               |
+| I2S audio data              |         26 | Output to MAX98357A DIN              |
+| Amplifier enable / mono mix |         25 | Drive high to enable; low shuts down |
+| Play / pause                |         34 | Active-low input                     |
+| Volume up                   |         35 | Active-low input                     |
+| Volume down                 |         32 | Active-low input                     |
 | Status LED                  |         19 | Active-high output                   |
 | UART TX                     |       TXD0 | To CH340C RXD                        |
 | UART RX                     |       RXD0 | From CH340C TXD                      |
 
-Use the ESP-IDF Bluetooth Classic A2DP sink API. Configure I2S for the pin map above and drive GPIO23 high after I2S is ready. The 634 kΩ series resistor selects the MAX98357A left/2 + right/2 mono mode at a 3.3 V logic-high level. GAIN is tied to GND for 12 dB gain.
+Use the ESP-IDF Bluetooth Classic A2DP sink API. Configure I2S for the pin map above and drive GPIO25 high after I2S is ready. The 634 kΩ series resistor selects the MAX98357A left/2 + right/2 mono mode at a 3.3 V logic-high level. GAIN is tied to GND for 12 dB gain.
 
 ## Connectors
 
@@ -80,7 +81,7 @@ Published package: [seveibar/esp32-bluetooth-speaker](https://tscircuit.com/seve
 ## Design files
 
 - `index.circuit.tsx` — complete circuit, schematic placement, PCB placement, and routing
-- `imports/` — exact footprints and 3D models for the ESP32, USB-C, CH340C, battery connector, buck-boost components, audio jack, LED, and regulator
+- `imports/` — exact footprints and 3D models for the ESP32, Micro-USB, CH340C, battery connector, buck-boost components, audio jack, LED, and regulator
 - `BOM.csv` — prototype bill of materials and sourcing notes
 - `dist/index/circuit.json` — generated tscircuit circuit JSON
 - `dist/index/pcb.svg` — routed PCB preview
@@ -94,6 +95,7 @@ Published package: [seveibar/esp32-bluetooth-speaker](https://tscircuit.com/seve
 - Verify the selected AMS1117 clone's output-capacitor ESR requirement. For production, a modern low-dropout regulator is preferable for additional 3.3 V headroom after the power-OR Schottky diode.
 - Keep the ESP32 antenna region clear of copper, batteries, the speaker magnet, enclosure metal, and wiring.
 - Keep speaker leads short and route them away from the ESP32 antenna. Add ferrite filtering if enclosure/cable EMI testing requires it.
-- Before fabrication, run the PCB vendor's DFM check and verify the USB-C, JST-PH, audio jack, speaker connector, buttons, and enclosure against physical samples.
+- The board is intentionally single-sided; the 0 Ω links are required assembly parts, not optional resistors.
+- Before fabrication, run the PCB vendor's DFM check and verify the Micro-USB, JST-PH, audio jack, speaker connector, buttons, and enclosure against physical samples.
 
 Reference datasheets: [TPS63070/TPS630701](https://www.ti.com/lit/ds/symlink/tps63070.pdf) and [CH340C](https://datasheet.lcsc.com/lcsc/2304140030_WCH-Jiangsu-Qin-Heng-CH340C_C84681.pdf).
