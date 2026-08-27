@@ -466,7 +466,7 @@ export default function BluetoothSpeaker() {
         name="C8"
         displayName="USB-UART BYPASS"
         capacitance="100nF"
-        maxDecouplingTraceLength="25mm"
+        maxDecouplingTraceLength="20mm"
         footprint="0603"
         layer="top"
         pcbX={9.6}
@@ -770,7 +770,7 @@ export default function BluetoothSpeaker() {
         name="C1"
         displayName="LDO INPUT BULK"
         capacitance="22uF"
-        maxDecouplingTraceLength="20mm"
+        maxDecouplingTraceLength="25mm"
         footprint="1206"
         pcbX={31}
         pcbY={-13}
