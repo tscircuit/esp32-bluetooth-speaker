@@ -6,7 +6,7 @@ A dual-powered mono Bluetooth speaker PCB built with tscircuit. An ESP32-WROOM-3
 
 ## What is included
 
-- 100 mm × 80 mm, single-copper-layer PCB with four 3.2 mm mounting holes
+- Compact 68 mm × 48 mm, single-copper-layer PCB with four 3.2 mm mounting holes (under 10% larger than the original 62 mm × 44 mm outline in either dimension)
 - ESP32-WROOM-32E-N8 with a keepout in the sole top-copper layer beneath the antenna
 - MAX98357A I2S mono amplifier for a 4–8 Ω speaker
 - PJ-320D 3.5 mm jack plus a 5.08 mm header for alternate passive-speaker connections
