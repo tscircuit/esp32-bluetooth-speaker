@@ -1,4 +1,5 @@
 import { MAX98357AETE_T } from "@tsci/Abse2001.MAX98357AETE_T";
+import type { PushButtonProps } from "@tscircuit/props";
 import { A_2N7002 } from "./imports/A_2N7002";
 import { AMS1117_3_3 } from "./imports/AMS1117_3_3";
 import { CH340C } from "./imports/CH340C";
@@ -11,7 +12,99 @@ import { TYPE_C_31_M_12 } from "./imports/TYPE_C_31_M_12";
 import { XFL4020_152MEC } from "./imports/XFL4020_152MEC";
 import { XL_1608UBC_04 } from "./imports/XL_1608UBC_04";
 
-const buttonFootprint = "kicad:Button_Switch_SMD/SW_SPST_PTS810";
+/**
+ * Keep the PTS810 footprint synchronous. The async KiCad footprint now maps
+ * repeated pads correctly, but it causes source-trace diagnostics to run before
+ * the rest of this board's connection traces have settled.
+ */
+const Pts810Button = (props: PushButtonProps) => (
+  <pushbutton
+    {...props}
+    pinLabels={{
+      pin1: ["pin1", "1"],
+      pin2: ["pin2", "2"],
+      pin3: ["pin1_alt", "1_alt"],
+      pin4: ["pin2_alt", "2_alt"],
+    }}
+    internallyConnectedPins={[
+      ["pin1", "pin1_alt"],
+      ["pin2", "pin2_alt"],
+    ]}
+    footprint={
+      <footprint>
+        <smtpad
+          portHints={["pin1"]}
+          pcbX="-2.075mm"
+          pcbY="1.075mm"
+          width="1.05mm"
+          height="0.65mm"
+          shape="rect"
+        />
+        <smtpad
+          portHints={["pin1_alt"]}
+          pcbX="2.075mm"
+          pcbY="1.075mm"
+          width="1.05mm"
+          height="0.65mm"
+          shape="rect"
+        />
+        <smtpad
+          portHints={["pin2"]}
+          pcbX="-2.075mm"
+          pcbY="-1.075mm"
+          width="1.05mm"
+          height="0.65mm"
+          shape="rect"
+        />
+        <smtpad
+          portHints={["pin2_alt"]}
+          pcbX="2.075mm"
+          pcbY="-1.075mm"
+          width="1.05mm"
+          height="0.65mm"
+          shape="rect"
+        />
+        <silkscreenpath
+          route={[
+            { x: -2.2, y: 1.7 },
+            { x: 2.2, y: 1.7 },
+          ]}
+        />
+        <silkscreenpath
+          route={[
+            { x: -2.2, y: -1.7 },
+            { x: 2.2, y: -1.7 },
+          ]}
+        />
+        <silkscreenpath
+          route={[
+            { x: -2.2, y: 0.57 },
+            { x: -2.2, y: -0.57 },
+          ]}
+        />
+        <silkscreenpath
+          route={[
+            { x: 2.2, y: 0.57 },
+            { x: 2.2, y: -0.57 },
+          ]}
+        />
+        <silkscreentext
+          text="{NAME}"
+          pcbY="2.6mm"
+          anchorAlignment="center"
+          fontSize="1.2mm"
+        />
+        <courtyardrect width="5.7mm" height="3.7mm" />
+      </footprint>
+    }
+    cadModel={{
+      stepUrl:
+        "https://kicad-mod-cache.tscircuit.com/Button_Switch_SMD/SW_SPST_PTS810.step",
+      wrlUrl:
+        "https://kicad-mod-cache.tscircuit.com/Button_Switch_SMD/SW_SPST_PTS810.wrl",
+    }}
+  />
+);
 
 const sch = {
   usbInput: { schSheetName: "usb_power", schSectionName: "usb_input" },
@@ -103,14 +196,24 @@ export default function BluetoothSpeaker() {
         />
       </schematicsheet>
 
-      {/* Keep every copper layer clear below the ESP32 PCB antenna. */}
+      {/* Keep top copper clear below the ESP32 PCB antenna. */}
       <keepout
         shape="rect"
         pcbX={-27.5}
         pcbY={7}
         width="7mm"
         height="22mm"
-        layers={["top", "bottom"]}
+        layers={["top"]}
+      />
+
+      {/* Dedicated bottom-layer keepout prevents the ground plane from loading the antenna. */}
+      <keepout
+        shape="rect"
+        pcbX={-27.5}
+        pcbY={7}
+        width="7mm"
+        height="22mm"
+        layers={["bottom"]}
       />
 
       {/* Continuous bottom return plane for RF, digital audio, and amplifier current. */}
@@ -211,15 +314,6 @@ export default function BluetoothSpeaker() {
           V3: "net.V3V3",
           D_POS: "net.USB_DP",
           D_NEG: "net.USB_DM",
-          XI: "net.USB_UART_XI_NC",
-          XO: "net.USB_UART_XO_NC",
-          CTS: "net.USB_UART_CTS_NC",
-          DSR: "net.USB_UART_DSR_NC",
-          RI: "net.USB_UART_RI_NC",
-          DCD: "net.USB_UART_DCD_NC",
-          DTR: "net.USB_UART_DTR_NC",
-          RTS: "net.USB_UART_RTS_NC",
-          R232: "net.USB_UART_R232_NC",
           VCC: "net.V3V3",
         }}
       />
@@ -370,11 +464,9 @@ export default function BluetoothSpeaker() {
         schHeight={1.6}
         connections={{
           PS_SYNC: "net.BAT_PROTECTED",
-          PG: "net.BAT_PG_NC",
           VAUX: "net.BAT_VAUX",
           GND: "net.GND",
           FB: "net.BAT_5V",
-          FB2: "net.BAT_FB2_NC",
           VOUT1: "net.BAT_5V",
           VOUT2: "net.BAT_5V",
           L2: "net.BAT_SW2",
@@ -751,11 +843,10 @@ export default function BluetoothSpeaker() {
         }}
       />
 
-      <pushbutton
+      <Pts810Button
         {...sch.esp32Core}
         name="SW1"
         displayName="RESET"
-        footprint={buttonFootprint}
         pcbX={0}
         pcbY={17.5}
         schX={-6}
@@ -781,11 +872,10 @@ export default function BluetoothSpeaker() {
         }}
       />
 
-      <pushbutton
+      <Pts810Button
         {...sch.esp32Core}
         name="SW2"
         displayName="BOOT"
-        footprint={buttonFootprint}
         pcbX={6}
         pcbY={17.5}
         schX={-3}
@@ -805,7 +895,7 @@ export default function BluetoothSpeaker() {
         pcbY={5}
         schX={3}
         schY={2}
-        schHeight={1.2}
+        schHeight={2}
         pinAttributes={
           {
             pin3: { requiresGround: true },
@@ -917,11 +1007,13 @@ export default function BluetoothSpeaker() {
         pcbRotation={180}
         schX={9}
         schY={5}
+        pinAttributes={{
+          pin2: { doNotConnect: true },
+          pin3: { doNotConnect: true },
+        }}
         connections={{
           TIP: "net.SPK_POS",
           SLEEVE: "net.SPK_NEG",
-          RING1: "net.JACK_RING1_NC",
-          RING2: "net.JACK_RING2_NC",
         }}
       />
 
@@ -941,11 +1033,10 @@ export default function BluetoothSpeaker() {
         }}
       />
 
-      <pushbutton
+      <Pts810Button
         {...sch.userControls}
         name="SW3"
         displayName="PLAY / PAUSE"
-        footprint={buttonFootprint}
         pcbX={8.5}
         pcbY={-15.5}
         schX={0}
@@ -971,11 +1062,10 @@ export default function BluetoothSpeaker() {
         }}
       />
 
-      <pushbutton
+      <Pts810Button
         {...sch.userControls}
         name="SW4"
         displayName="VOLUME +"
-        footprint={buttonFootprint}
         pcbX={16.5}
         pcbY={-15.5}
         schX={4}
@@ -1001,11 +1091,10 @@ export default function BluetoothSpeaker() {
         }}
       />
 
-      <pushbutton
+      <Pts810Button
         {...sch.userControls}
         name="SW5"
         displayName="VOLUME -"
-        footprint={buttonFootprint}
         pcbX={24.5}
         pcbY={-15.5}
         schX={8}

@@ -1,6 +1,6 @@
 {
   "name": "@tsci/seveibar.esp32-bluetooth-speaker",
-  "version": "1.0.7",
+  "version": "1.0.13",
   "description": "USB-C/4xAA-powered ESP32 Bluetooth A2DP speaker with USB-UART and a MAX98357A I2S amplifier",
   "main": "index.circuit.tsx",
   "keywords": [
@@ -19,14 +19,11 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
-    "tscircuit": "^0.0.2367",
+    "tscircuit": "0.0.2452",
     "typescript": "^5.0.0"
   },
   "author": "seveibar",
   "dependencies": {
     "@tsci/Abse2001.MAX98357AETE_T": "^0.1.0"
-  },
-  "patchedDependencies": {
-    "@tscircuit/cli@0.1.1961": "patches/@tscircuit%2Fcli@0.1.1961.patch"
   }
 }
